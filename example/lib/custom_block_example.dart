@@ -25,9 +25,8 @@ void main() {
               color: Colors.amber[900],
             ),
           ),
-          if (node['content'] != null) ...[
+          if (node['content'] != null)
             ...next(node['content']),
-          ],
         ],
       ),
     ),

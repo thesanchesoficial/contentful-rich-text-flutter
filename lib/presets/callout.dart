@@ -40,45 +40,14 @@ class CalloutPreset {
             ),
             const SizedBox(height: 16.0),
             // Conteúdo da citação
-            if (node['content'] != null) ...[
-              DefaultTextStyle.merge(
-                style: quoteStyle ??
-                    TextStyle(
-                      fontSize: 18.0,
-                      fontStyle: FontStyle.italic,
-                      height: 1.5,
-                      color: Colors.black87,
-                    ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: next(node['content']),
-                ),
-              ),
-            ],
+            if (node['content'] != null)
+              ...next(node['content']),
             // Autor da citação
-            if (node['data']?['author'] != null) ...[
-              const SizedBox(height: 16.0),
+            if (node['data']?['author'] != null)
               Text(
-                '— ${node['data']['author']}',
-                style: authorStyle ??
-                    TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w500,
-                    ),
+                '- ${node['data']['author']}',
+                style: authorStyle,
               ),
-              if (node['data']?['source'] != null)
-                Text(
-                  node['data']['source'],
-                  style: authorStyle?.copyWith(
-                        fontSize: (authorStyle.fontSize ?? 16.0) - 2,
-                      ) ??
-                      TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.black45,
-                      ),
-                ),
-            ],
           ],
         ),
       ),

@@ -102,9 +102,8 @@ class AlertBoxPreset {
                           ),
                         ),
                       ),
-                    if (node['content'] != null) ...[
+                    if (node['content'] != null)
                       ...next(node['content']),
-                    ],
                   ],
                 ),
               ),

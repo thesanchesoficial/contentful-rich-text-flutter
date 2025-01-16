@@ -21,9 +21,8 @@ class EmbeddedEntry extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (node['content'] != null) ...[
+          if (node['content'] != null)
             ...next(node['content']),
-          ],
         ],
       ),
     );
