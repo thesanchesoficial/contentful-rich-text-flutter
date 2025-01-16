@@ -2,10 +2,16 @@ library contentful_rich_text;
 
 import 'package:contentful_rich_text/state/renderers.dart';
 import 'package:contentful_rich_text/types/blocks.dart';
+import 'package:contentful_rich_text/types/custom_blocks.dart';
 import 'package:contentful_rich_text/types/helpers.dart';
 import 'package:contentful_rich_text/types/inlines.dart';
 import 'package:contentful_rich_text/types/marks.dart';
+import 'package:contentful_rich_text/types/node_type_mapper.dart';
 import 'package:contentful_rich_text/types/types.dart';
+import 'package:contentful_rich_text/widgets/asset_hyperlink.dart';
+import 'package:contentful_rich_text/widgets/embedded_asset.dart';
+import 'package:contentful_rich_text/widgets/embedded_entry.dart';
+import 'package:contentful_rich_text/widgets/entry_hyperlink.dart';
 import 'package:contentful_rich_text/widgets/heading.dart';
 import 'package:contentful_rich_text/widgets/hr.dart';
 import 'package:contentful_rich_text/widgets/hyperlink.dart';
@@ -13,6 +19,7 @@ import 'package:contentful_rich_text/widgets/inline_embedded_entry.dart';
 import 'package:contentful_rich_text/widgets/list_item.dart';
 import 'package:contentful_rich_text/widgets/ordered_list.dart';
 import 'package:contentful_rich_text/widgets/paragraph.dart';
+import 'package:contentful_rich_text/widgets/quote.dart';
 import 'package:contentful_rich_text/widgets/unordered_list.dart';
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape_small.dart';
@@ -22,66 +29,64 @@ class ContentfulRichText {
   RenderNode defaultNodeRenderers = RenderNode({
     BLOCKS.PARAGRAPH.value: (node, next) => Paragraph(node, next),
     BLOCKS.HEADING_1.value: (node, next) => Heading(
-          level: BLOCKS.HEADING_1,
-          text: node['value'] ?? '',
-          content: node['content'] ?? '',
-          next: next,
-        ),
+      level: BLOCKS.HEADING_1,
+      text: node['value'] ?? '',
+      content: node['content'] ?? '',
+      next: next,
+    ),
     BLOCKS.HEADING_2.value: (node, next) => Heading(
-          level: BLOCKS.HEADING_2,
-          text: node['value'] ?? '',
-          content: node['content'] ?? '',
-          next: next,
-        ),
+      level: BLOCKS.HEADING_2,
+      text: node['value'] ?? '',
+      content: node['content'] ?? '',
+      next: next,
+    ),
     BLOCKS.HEADING_3.value: (node, next) => Heading(
-          level: BLOCKS.HEADING_3,
-          text: node['value'] ?? '',
-          content: node['content'] ?? '',
-          next: next,
-        ),
+      level: BLOCKS.HEADING_3,
+      text: node['value'] ?? '',
+      content: node['content'] ?? '',
+      next: next,
+    ),
     BLOCKS.HEADING_4.value: (node, next) => Heading(
-          level: BLOCKS.HEADING_4,
-          text: node['value'] ?? '',
-          content: node['content'] ?? '',
-          next: next,
-        ),
+      level: BLOCKS.HEADING_4,
+      text: node['value'] ?? '',
+      content: node['content'] ?? '',
+      next: next,
+    ),
     BLOCKS.HEADING_5.value: (node, next) => Heading(
-          level: BLOCKS.HEADING_5,
-          text: node['value'] ?? '',
-          content: node['content'] ?? '',
-          next: next,
-        ),
+      level: BLOCKS.HEADING_5,
+      text: node['value'] ?? '',
+      content: node['content'] ?? '',
+      next: next,
+    ),
     BLOCKS.HEADING_6.value: (node, next) => Heading(
-          level: BLOCKS.HEADING_6,
-          text: node['value'] ?? '',
-          content: node['content'] ?? '',
-          next: next,
-        ),
-    BLOCKS.EMBEDDED_ENTRY.value: (node, next) => Container(), // TODO: implement
+      level: BLOCKS.HEADING_6,
+      text: node['value'] ?? '',
+      content: node['content'] ?? '',
+      next: next,
+    ),
+    BLOCKS.EMBEDDED_ENTRY.value: (node, next) => EmbeddedEntry(node, next),
+    BLOCKS.EMBEDDED_ASSET.value: (node, next) => EmbeddedAsset(node, next),
     BLOCKS.UL_LIST.value: (node, next) =>
         UnorderedList(node['content'] ?? '', next),
     BLOCKS.OL_LIST.value: (node, next) =>
         OrderedList(node['content'] ?? '', next),
     BLOCKS.LIST_ITEM.value: (node, next) => ListItem(
-          text: node.value,
-          type: node.nodeType == BLOCKS.OL_LIST.value
-              ? ListItemType.ordered
-              : ListItemType.unordered,
-          children: node['content'] ?? '',
-        ),
-    BLOCKS.QUOTE.value: (node, next) => Container(), // TODO: implement
+      text: node.value,
+      type: node.nodeType == BLOCKS.OL_LIST.value
+          ? ListItemType.ordered
+          : ListItemType.unordered,
+      children: node['content'] ?? '',
+    ),
+    BLOCKS.QUOTE.value: (node, next) => Quote(node, next),
     BLOCKS.HR.value: (node, next) => Hr(),
     INLINES.ASSET_HYPERLINK.value: (node, next) =>
-        _defaultInline(INLINES.ASSET_HYPERLINK, node as Inline),
+        AssetHyperlink(node as Inline, next),
     INLINES.ENTRY_HYPERLINK.value: (node, next) =>
-        _defaultInline(INLINES.ENTRY_HYPERLINK, node as Inline),
+        EntryHyperlink(node as Inline, next),
     INLINES.EMBEDDED_ENTRY.value: (node, next) =>
         InlineEmbeddedEntry(node, next),
     INLINES.HYPERLINK.value: (node, next) => Hyperlink(node, next),
   });
-
-  // TODO: implement
-  static Widget _defaultInline(INLINES type, Inline node) => Container();
 
   dynamic richTextJson;
   Options? options;
@@ -128,11 +133,15 @@ class ContentfulRichText {
   /// nodeToWidget handles converting a node into a Widget, as well as handling
   /// any custom logic needed to accommodate different node types
   Widget nodeToWidget(dynamic node) {
+    String nodeType = node['nodeType'] ?? '';
+    
+    // Converte o tipo do nó se houver mapeamento
+    nodeType = NodeTypeMapper.convertBlockType(nodeType);
+    
     if (Helpers.isText(node)) {
       return Text.rich(TextSpan(text: _processInlineNode(node)));
     } else if (Helpers.isParagraph(node) || Helpers.isHeader(node)) {
-      // TODO: Headers don't appear to set their size properly
-      return singletonRenderers.renderNode[node['nodeType']]!(
+      return singletonRenderers.renderNode[nodeType]!(
         node,
         (nodes) => List<TextSpan>.from(
           nodes.map(
@@ -142,12 +151,17 @@ class ContentfulRichText {
       );
     } else {
       Next nextNode = (nodes) => nodeListToWidget(nodes);
-      if (node['nodeType'] == null ||
-          singletonRenderers.renderNode[node['nodeType']] == null) {
-        // TODO: Figure what to return when passed an unrecognized node.
+
+      // Primeiro verifica se existe um renderizador customizado
+      if (CustomContentRegistry.hasBlockRenderer(nodeType)) {
+        return CustomContentRegistry.getBlockRenderer(nodeType)!(node, nextNode);
+      }
+
+      // Se não houver renderizador customizado, usa o padrão
+      if (singletonRenderers.renderNode[nodeType] == null) {
         return Container();
       }
-      return singletonRenderers.renderNode[node['nodeType']]!(node, nextNode);
+      return singletonRenderers.renderNode[nodeType]!(node, nextNode);
     }
   }
 
@@ -158,11 +172,27 @@ class ContentfulRichText {
     node, {
     String? uri,
   }) {
-    if (node['nodeType'] == 'hyperlink' || uri?.isNotEmpty == true) {
+    String nodeType = node['nodeType'] ?? '';
+    
+    // Converte o tipo do nó se houver mapeamento
+    nodeType = NodeTypeMapper.convertInlineType(nodeType);
+
+    // Verifica primeiro se é um inline customizado
+    if (CustomContentRegistry.hasInlineRenderer(nodeType)) {
+      return CustomContentRegistry.getInlineRenderer(nodeType)!(
+        node,
+        (nodes) => nodes
+            ?.map<TextSpan>(
+              (node) => _processInlineNode(node) as TextSpan,
+            )
+            .toList(),
+      );
+    }
+
+    if (nodeType == 'hyperlink' || uri?.isNotEmpty == true) {
       // Note: Hyperlinks are nested in other blocs like Paragraphs/Headers
       String link = uri ?? node['data']['uri'];
-      String nodeType = node['nodeType'] ?? '';
-      if (uri?.isNotEmpty == true && node['nodeType'] == 'text') {
+      if (uri?.isNotEmpty == true && nodeType == 'text') {
         // ensure Hyperlink is used for text blocks with uris
         nodeType = 'hyperlink';
         // pass uri for Hyperlink on text nodes for TapRecognizer
@@ -184,7 +214,7 @@ class ContentfulRichText {
     }
 
     // for links to entries only process the child-nodes
-    if (node['nodeType'] == 'entry-hyperlink') {
+    if (nodeType == 'entry-hyperlink') {
       return TextSpan(
         children: (node['content'] ?? '')
             .map<TextSpan>((subNode) => _processInlineNode(subNode) as TextSpan)
@@ -192,8 +222,8 @@ class ContentfulRichText {
       );
     }
 
-    if (node['nodeType'] == 'embedded-entry-inline') {
-      return singletonRenderers.renderNode[node['nodeType']]!(
+    if (nodeType == 'embedded-entry-inline') {
+      return singletonRenderers.renderNode[nodeType]!(
         node,
         (nodes) =>
             nodes

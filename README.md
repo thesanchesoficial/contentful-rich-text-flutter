@@ -1,204 +1,106 @@
-# Contentful Rich Text Renderer for Flutter
+# Contentful Rich Text Flutter
 
-Rich Text renderer that parses Contentful Rich Text field JSON output and produces a Flutter Widget tree that can be displayed in a Flutter app.
+Um renderizador de Rich Text que converte objetos JSON do Contentful Rich Text em widgets Flutter.
 
-## Installation
+## Recursos
 
-To use this plugin, add `contentful_rich_text` as a dependency in your pubspec.yaml file.
+- Renderização de todos os tipos de nós do Contentful
+- Suporte a renderizadores customizados
+- Sistema de mapeamento de tipos
+- Gerenciamento de múltiplas configurações
+- Interface visual para gerenciar mapeamentos
 
-## Usage
+## Instalação
 
-Note: The json examples are samples of what Contentful's API can return. The `getContentfulJson` method is just a placeholder for where your code would call a method to get your data from the Contentful API.
+```yaml
+dependencies:
+  contentful_rich_text: ^latest_version
+```
 
-#### Simple document with paragraph, no inline marks (bold/italic/underline)
-###### Sample JSON
-```json
+## Uso Básico
+
+```dart
+ContentfulRichText(richTextJson).documentToWidgetTree
+```
+
+## Mapeamento de Tipos
+
+O sistema de mapeamento permite usar nomes personalizados para os tipos de nós do Contentful. Por exemplo, você pode usar `titulo-principal` em vez de `heading-1`.
+
+### Configuração de Mapeamentos
+
+```dart
+// Mapeia tipos de bloco
+NodeTypeMapper.mapBlock('titulo-principal', BLOCKS.HEADING_1.value);
+NodeTypeMapper.mapBlock('texto', BLOCKS.PARAGRAPH.value);
+NodeTypeMapper.mapBlock('lista-topicos', BLOCKS.UL_LIST.value);
+
+// Mapeia tipos inline
+NodeTypeMapper.mapInline('link-externo', INLINES.HYPERLINK.value);
+NodeTypeMapper.mapInline('link-entrada', INLINES.ENTRY_HYPERLINK.value);
+```
+
+### Uso com Tipos Customizados
+
+```dart
 {
-  "nodeType": "document",
-  "content": [
+  'nodeType': 'titulo-principal',
+  'content': [
     {
-      "nodeType": "paragraph",
-      "content": [
-        {
-          "nodeType": "text",
-          "value": "Hello world!",
-          "marks": []
-        }
-      ]
+      'nodeType': 'text',
+      'value': 'Meu Título',
+      'marks': []
     }
   ]
 }
 ```
-###### Sample Dart implementation
+
+### Gerenciamento de Configurações
+
+O pacote inclui uma interface visual para gerenciar mapeamentos:
+
 ```dart
-import 'package:contentful_rich_text/contentful_rich_text.dart';
-
-// getting data from Contentful, must be implemented in your project
-// document will be a dynamic variable JSON map matching the above JSON
-var document = getContentfulJson(); 
-
-class Demo extends StatelessWidget {
-
-@override
-  Widget build(BuildContext context) {
-    return ContentfulRichText(document).documentToWidgetTree;
-    // Example widget tree produced:
-    // Paragraph(
-    //   Text(text: 'Hello World'),
-    // );
-  }
-}
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => const TypeMappingManager(),
+  ),
+);
 ```
 
-#### Simple document with paragraph, with bold and italic inline marks
-###### Sample JSON
-```json
-{
-  "nodeType": "document",
-  "content": [
-    {
-      "nodeType": "paragraph",
-      "content": [
-        {
-          "nodeType": "text",
-          "value": "Hello",
-          "marks": [{ "type": "bold" }],
-        },
-        {
-          "nodeType": "text",
-          "value": " world!",
-          "marks": [{ "type": "italic" }]
-        }
-      ]
-    }
-  ]
-}
-```
-###### Sample Dart implementation
-```dart
-import 'package:contentful_rich_text/contentful_rich_text.dart';
+A interface permite:
+- Criar múltiplas configurações de mapeamento
+- Ativar/desativar configurações
+- Exportar/importar configurações
+- Gerenciar mapeamentos de blocos e inlines
 
-// getting data from Contentful, must be implemented in your project
-// document will be a dynamic variable JSON map matching the above JSON
-var document = getContentfulJson();
+### Exemplo Completo
 
-class Demo extends StatelessWidget {
+Veja o arquivo `example/lib/type_mapping_example.dart` para um exemplo completo de uso do sistema de mapeamento.
 
-@override
-  Widget build(BuildContext context) {
-    return ContentfulRichText(document).documentToWidgetTree;
-    // Example widget tree produced:
-    // Paragraph(
-    //   Text(
-    //     text: '',
-    //     children: <Widgets>[
-    //       TextSpan(text: 'Hello', style: { fontWeight: FontWeight.bold }),
-    //       TextSpan(text: ' world!', style: { fontStyle: FontStyle.italic }), 
-    //     ],
-    //   ),
-    // );
-  }
-}
-```
+## Tipos Suportados
 
-#### Simple document with paragraph, with bold and italic inline marks, using a custom renderer and mark
-You can also pass custom renderers for both marks and nodes as an optional parameter like so:
-###### Sample JSON
-```json
-{
-  "nodeType": "document",
-  "data": {},
-  "content": [
-    {
-      "nodeType": "paragraph",
-      "data":{},
-      "content": [
-        {
-          "nodeType": "text",
-          "value": "Hello",
-          "marks": [{ "type": "bold" }],
-          "data": {}
-        },
-        {
-          "nodeType": "text",
-          "value": " world!",
-          "marks": [{ "type": "italic" }],
-          "data": {}
-        }
-      ]
-    }
-  ]
-}
-```
-###### Sample Dart implementation
-```dart
-import 'package:contentful_rich_text/contentful_rich_text.dart';
+### Blocos
+- PARAGRAPH
+- HEADING_1 a HEADING_6
+- UL_LIST
+- OL_LIST
+- LIST_ITEM
+- HR
+- QUOTE
+- EMBEDDED_ENTRY
+- EMBEDDED_ASSET
 
-// getting data from Contentful, must be implemented in your project
-// document will be a dynamic variable JSON map matching the above JSON
-var document = getContentfulJson();
+### Inline
+- HYPERLINK
+- ENTRY_HYPERLINK
+- ASSET_HYPERLINK
+- EMBEDDED_ENTRY
 
-var options = {
-  renderMark: RenderMark defaultMarkRenderers = RenderMark({
-    [MARKS.BOLD.value]: () => CustomBoldTextStyle, // returns TextStyle
-  }),
-  renderNode: RenderNode defaultNodeRenderers = RenderNode({
-    [BLOCKS.PARAGRAPH.value]: (node, next) => CustomParagraph(next: next(node.content))
-  })
-}
+## Contribuindo
 
-class Demo extends StatelessWidget {
+Contribuições são bem-vindas! Por favor, leia nossas diretrizes de contribuição antes de enviar um PR.
 
-@override
-  Widget build(BuildContext context) {
-    return ContentfulRichText(document, options).documentToWidgetTree;
-    // Example widget tree produced:
-    // CustomParagraph(
-    //   textStyle: CustomBoldTextStyle(),
-    //   ...
-    // );
-  }
-}
-```
+## Licença
 
-### RenderNodes
-RenderNodes are the various content nodes that Contentful sends for the Rich Text Widget. Blocks are block level items, and inlines are inline items.
-
-Note: Not all of the nodes sent from Contentful are currently implemented. See below for the implementation status.
-
-The `renderNode` keys should be the `value` of one of the following `BLOCKS` and `INLINES` properties as defined in [`contentful_rich_text/types`](https://github.com/Kumanu/contentful-rich-text-flutter/tree/main/lib/types):
-
-- `BLOCKS`
-  - `DOCUMENT`
-  - `PARAGRAPH`
-  - `HEADING_1`
-  - `HEADING_2`
-  - `HEADING_3`
-  - `HEADING_4`
-  - `HEADING_5`
-  - `HEADING_6`
-  - `UL_LIST` // partially implemented, nested lists are not implemented yet
-  - `OL_LIST` // partially implemented, nested lists are not implemented yet
-  - `LIST_ITEM`
-  - ~~`QUOTE`~~ // not implemented yet
-  - `HR`
-  - ~~`EMBEDDED_ENTRY`~~ // not implemented yet
-  - ~~`EMBEDDED_ASSET`~~ // not implemented yet
-
-- `INLINES`
-  - `HYPERLINK`
-  - `EMBEDDED_ENTRY` (this is different from the `BLOCKS.EMBEDDED_ENTRY`)
-  - ~~`ENTRY_HYPERLINK`~~ // not implemented yet
-  - ~~`ASSET_HYPERLINK`~~ // not implemented yet
-
-### RenderMarks
-RenderMarks are the various text styles that can be applied to text inline. 
-
-Note: Not all of the marks sent from Contentful are currently implemented. See below for the implementation status.
-
-The `renderMark` keys should be the value of one of the following `MARKS` properties as defined in [`contentful_rich_text/types`](https://github.com/Kumanu/contentful-rich-text-flutter/tree/main/lib/types):
-
-- `BOLD`
-- `ITALIC`
-- `UNDERLINE`
-- ~~`CODE`~~ // not implemented yet
+MIT License - veja o arquivo LICENSE para detalhes.
