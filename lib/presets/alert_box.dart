@@ -1,4 +1,5 @@
 import 'package:contentful_rich_text/types/custom_blocks.dart';
+import 'package:contentful_rich_text/types/types.dart';
 import 'package:flutter/material.dart';
 
 /// Tipos de alerta disponíveis
@@ -102,8 +103,7 @@ class AlertBoxPreset {
                           ),
                         ),
                       ),
-                    if (node['content'] != null)
-                      ...next(node['content']),
+                    ...toWidgetList(node['content'] != null ? next(node['content']) : null),
                   ],
                 ),
               ),

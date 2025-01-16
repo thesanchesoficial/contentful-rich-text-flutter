@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 /// Representa uma configuração de mapeamento completa
 class MappingConfig {

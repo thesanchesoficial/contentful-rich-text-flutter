@@ -1,6 +1,3 @@
-import 'package:contentful_rich_text/types/blocks.dart';
-import 'package:contentful_rich_text/types/inlines.dart';
-import 'package:contentful_rich_text/types/node_type_validator.dart';
 
 /// Classe responsável por mapear tipos de nós customizados para tipos padrão do Contentful
 class NodeTypeMapper {

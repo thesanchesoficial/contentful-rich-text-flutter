@@ -26,7 +26,7 @@ void main() {
             ),
           ),
           if (node['content'] != null)
-            ...next(node['content']),
+            ...(next(node['content']) as List<Widget>? ?? []),
         ],
       ),
     ),

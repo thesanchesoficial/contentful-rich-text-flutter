@@ -1,4 +1,5 @@
 import 'package:contentful_rich_text/types/custom_blocks.dart';
+import 'package:contentful_rich_text/types/types.dart';
 import 'package:flutter/material.dart';
 
 /// Um widget de callout pré-construído para destacar citações ou
@@ -32,17 +33,13 @@ class CalloutPreset {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ícone de citação
             Icon(
               Icons.format_quote,
               color: accentColor.withOpacity(0.3),
               size: 40.0,
             ),
             const SizedBox(height: 16.0),
-            // Conteúdo da citação
-            if (node['content'] != null)
-              ...next(node['content']),
-            // Autor da citação
+            ...toWidgetList(node['content'] != null ? next(node['content']) : null),
             if (node['data']?['author'] != null)
               Text(
                 '- ${node['data']['author']}',

@@ -20,10 +20,7 @@ class EmbeddedEntry extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (node['content'] != null)
-            ...next(node['content']),
-        ],
+        children: toWidgetList(node['content'] != null ? next(node['content']) : null),
       ),
     );
   }

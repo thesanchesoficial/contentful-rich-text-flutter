@@ -1,4 +1,5 @@
 import 'package:contentful_rich_text/types/custom_blocks.dart';
+import 'package:contentful_rich_text/types/types.dart';
 import 'package:flutter/material.dart';
 
 /// Um widget de card pré-construído para exibir conteúdo em um formato de cartão
@@ -51,8 +52,7 @@ class ContentCardPreset {
                     ),
                   ),
                 ),
-              if (node['content'] != null)
-                ...next(node['content']),
+              ...toWidgetList(node['content'] != null ? next(node['content']) : null),
             ],
           ),
         ),

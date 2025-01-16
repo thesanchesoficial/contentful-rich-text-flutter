@@ -1,25 +1,25 @@
-# Contentful Rich Text Flutter
+# Contentful Rich Text Flutter Renderer
 
-A Rich Text renderer that converts Contentful Rich Text JSON objects into Flutter widgets.
+A Flutter package to render Contentful Rich Text JSON data into Flutter widgets.
 
-[English](#english) | [Português](#português)
+## Features
 
-## English
+- Renders all standard Contentful Rich Text nodes
+- Supports custom blocks and inline elements
+- Customizable text styles for all text elements
+- Type mapping system for custom node types
+- Built-in default styles
 
-### Features
+## Installation
 
-- Renders all Contentful node types
-- Custom renderer support
-- Type mapping system
-- Multiple configuration management
-- Visual interface for mapping management
-
-### Installation
+Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
   contentful_rich_text: ^latest_version
 ```
+
+## Usage
 
 ### Basic Usage
 
@@ -27,179 +27,117 @@ dependencies:
 ContentfulRichText(richTextJson).documentToWidgetTree
 ```
 
-### Type Mapping System
+### Custom Text Styles
 
-The mapping system allows you to use custom names for Contentful node types. For example, you can use `main-title` instead of `heading-1`.
-
-#### Setting Up Mappings
+You can customize text styles for different text elements:
 
 ```dart
-// Map block types
-NodeTypeMapper.mapBlock('main-title', BLOCKS.HEADING_1.value);
-NodeTypeMapper.mapBlock('text', BLOCKS.PARAGRAPH.value);
-NodeTypeMapper.mapBlock('topic-list', BLOCKS.UL_LIST.value);
-NodeTypeMapper.mapBlock('topic', BLOCKS.LIST_ITEM.value);
-NodeTypeMapper.mapBlock('quote', BLOCKS.QUOTE.value);
-
-// Map inline types
-NodeTypeMapper.mapInline('external-link', INLINES.HYPERLINK.value);
-NodeTypeMapper.mapInline('entry-link', INLINES.ENTRY_HYPERLINK.value);
-NodeTypeMapper.mapInline('asset-link', INLINES.ASSET_HYPERLINK.value);
-```
-
-#### Examples for Each Type
-
-##### Headings
-```dart
-{
-  'nodeType': 'main-title',
-  'content': [
-    {
-      'nodeType': 'text',
-      'value': 'Welcome to My App',
-      'marks': []
-    }
-  ]
-}
-```
-
-##### Paragraph with Link
-```dart
-{
-  'nodeType': 'text',
-  'content': [
-    {
-      'nodeType': 'text',
-      'value': 'Check out our ',
-      'marks': []
-    },
-    {
-      'nodeType': 'external-link',
-      'data': {
-        'uri': 'https://example.com'
-      },
-      'content': [
-        {
-          'nodeType': 'text',
-          'value': 'website',
-          'marks': []
-        }
-      ]
-    }
-  ]
-}
-```
-
-##### List
-```dart
-{
-  'nodeType': 'topic-list',
-  'content': [
-    {
-      'nodeType': 'topic',
-      'content': [
-        {
-          'nodeType': 'text',
-          'value': 'First item',
-          'marks': []
-        }
-      ]
-    },
-    {
-      'nodeType': 'topic',
-      'content': [
-        {
-          'nodeType': 'text',
-          'value': 'Second item',
-          'marks': []
-        }
-      ]
-    }
-  ]
-}
-```
-
-#### Configuration Management
-
-The package includes a visual interface for managing mappings:
-
-```dart
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => const TypeMappingManager(),
+ContentfulRichText(
+  richTextJson,
+  options: Options(
+    renderNode: RenderNode({}),
+    textStyles: TextStyles(
+      paragraph: TextStyle(
+        fontSize: 18.0,
+        height: 1.6,
+        color: Colors.grey[800],
+      ),
+      heading1: TextStyle(
+        fontSize: 36.0,
+        fontWeight: FontWeight.w900,
+        color: Colors.blue[900],
+      ),
+      quote: TextStyle(
+        fontSize: 16.0,
+        fontStyle: FontStyle.italic,
+        color: Colors.grey[600],
+      ),
+    ),
   ),
-);
+).documentToWidgetTree
 ```
 
-##### Creating a Configuration
-```dart
-final config = await MappingConfigManager.createFromCurrent(
-  name: 'Blog Config',
-  description: 'Mappings for blog content',
-  blockMappings: {
-    'main-title': BLOCKS.HEADING_1.value,
-    'text': BLOCKS.PARAGRAPH.value,
-  },
-  inlineMappings: {
-    'external-link': INLINES.HYPERLINK.value,
-  },
-);
-```
+Available style properties:
+- `paragraph`
+- `heading1` to `heading6`
+- `listItem`
+- `quote`
+- `hyperlink`
 
-##### Activating a Configuration
-```dart
-await MappingConfigManager.setActiveConfig(config.name);
-```
+### Custom Blocks
 
-##### Exporting/Importing
-```dart
-// Export
-final json = await MappingConfigManager.exportConfigs();
-await Clipboard.setData(ClipboardData(text: json));
+You can create custom blocks for specific content types:
 
-// Import
-final data = await Clipboard.getData('text/plain');
-if (data?.text != null) {
-  await MappingConfigManager.importConfigs(data!.text!);
+```dart
+// Define your custom block widget
+class RiceBlock extends StatelessWidget {
+  final dynamic node;
+  final Next next;
+
+  const RiceBlock(this.node, this.next);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.rice_bowl, size: 32),
+          if (node['content'] != null)
+            ...toWidgetList(next(node['content'])),
+        ],
+      ),
+    );
+  }
 }
+
+// Register your custom block
+void main() {
+  CustomContentRegistry.registerBlockRenderer(
+    'rice',
+    (node, next) => RiceBlock(node, next),
+  );
+  
+  runApp(MyApp());
+}
+
+// Use with type mapping
+ContentfulRichText(
+  richTextJson,
+  options: Options(
+    renderNode: RenderNode({}),
+  ),
+).documentToWidgetTree
 ```
 
-### Supported Types
+---
 
-#### Blocks
-- PARAGRAPH
-- HEADING_1 to HEADING_6
-- UL_LIST
-- OL_LIST
-- LIST_ITEM
-- HR
-- QUOTE
-- EMBEDDED_ENTRY
-- EMBEDDED_ASSET
+# Contentful Rich Text Flutter Renderer (Português)
 
-#### Inline
-- HYPERLINK
-- ENTRY_HYPERLINK
-- ASSET_HYPERLINK
-- EMBEDDED_ENTRY
+Um pacote Flutter para renderizar dados JSON do Contentful Rich Text em widgets Flutter.
 
-## Português
+## Funcionalidades
 
-### Recursos
+- Renderiza todos os nós padrão do Contentful Rich Text
+- Suporta blocos e elementos inline personalizados
+- Estilos de texto personalizáveis para todos os elementos
+- Sistema de mapeamento de tipos para nós personalizados
+- Estilos padrão incluídos
 
-- Renderiza todos os tipos de nós do Contentful
-- Suporte a renderizadores customizados
-- Sistema de mapeamento de tipos
-- Gerenciamento de múltiplas configurações
-- Interface visual para gerenciar mapeamentos
+## Instalação
 
-### Instalação
+Adicione ao arquivo `pubspec.yaml` do seu projeto:
 
 ```yaml
 dependencies:
-  contentful_rich_text: ^latest_version
+  contentful_rich_text: ^última_versão
 ```
+
+## Uso
 
 ### Uso Básico
 
@@ -207,162 +145,92 @@ dependencies:
 ContentfulRichText(richTextJson).documentToWidgetTree
 ```
 
-### Sistema de Mapeamento de Tipos
+### Estilos de Texto Personalizados
 
-O sistema de mapeamento permite usar nomes personalizados para os tipos de nós do Contentful. Por exemplo, você pode usar `titulo-principal` em vez de `heading-1`.
-
-#### Configurando Mapeamentos
+Você pode personalizar os estilos de texto para diferentes elementos:
 
 ```dart
-// Mapeia tipos de bloco
-NodeTypeMapper.mapBlock('titulo-principal', BLOCKS.HEADING_1.value);
-NodeTypeMapper.mapBlock('texto', BLOCKS.PARAGRAPH.value);
-NodeTypeMapper.mapBlock('lista-topicos', BLOCKS.UL_LIST.value);
-NodeTypeMapper.mapBlock('topico', BLOCKS.LIST_ITEM.value);
-NodeTypeMapper.mapBlock('citacao', BLOCKS.QUOTE.value);
-
-// Mapeia tipos inline
-NodeTypeMapper.mapInline('link-externo', INLINES.HYPERLINK.value);
-NodeTypeMapper.mapInline('link-entrada', INLINES.ENTRY_HYPERLINK.value);
-NodeTypeMapper.mapInline('link-asset', INLINES.ASSET_HYPERLINK.value);
-```
-
-#### Exemplos para Cada Tipo
-
-##### Títulos
-```dart
-{
-  'nodeType': 'titulo-principal',
-  'content': [
-    {
-      'nodeType': 'text',
-      'value': 'Bem-vindo ao Meu App',
-      'marks': []
-    }
-  ]
-}
-```
-
-##### Parágrafo com Link
-```dart
-{
-  'nodeType': 'texto',
-  'content': [
-    {
-      'nodeType': 'text',
-      'value': 'Visite nosso ',
-      'marks': []
-    },
-    {
-      'nodeType': 'link-externo',
-      'data': {
-        'uri': 'https://exemplo.com'
-      },
-      'content': [
-        {
-          'nodeType': 'text',
-          'value': 'site',
-          'marks': []
-        }
-      ]
-    }
-  ]
-}
-```
-
-##### Lista
-```dart
-{
-  'nodeType': 'lista-topicos',
-  'content': [
-    {
-      'nodeType': 'topico',
-      'content': [
-        {
-          'nodeType': 'text',
-          'value': 'Primeiro item',
-          'marks': []
-        }
-      ]
-    },
-    {
-      'nodeType': 'topico',
-      'content': [
-        {
-          'nodeType': 'text',
-          'value': 'Segundo item',
-          'marks': []
-        }
-      ]
-    }
-  ]
-}
-```
-
-#### Gerenciamento de Configurações
-
-O pacote inclui uma interface visual para gerenciar mapeamentos:
-
-```dart
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => const TypeMappingManager(),
+ContentfulRichText(
+  richTextJson,
+  options: Options(
+    renderNode: RenderNode({}),
+    textStyles: TextStyles(
+      paragraph: TextStyle(
+        fontSize: 18.0,
+        height: 1.6,
+        color: Colors.grey[800],
+      ),
+      heading1: TextStyle(
+        fontSize: 36.0,
+        fontWeight: FontWeight.w900,
+        color: Colors.blue[900],
+      ),
+      quote: TextStyle(
+        fontSize: 16.0,
+        fontStyle: FontStyle.italic,
+        color: Colors.grey[600],
+      ),
+    ),
   ),
-);
+).documentToWidgetTree
 ```
 
-##### Criando uma Configuração
-```dart
-final config = await MappingConfigManager.createFromCurrent(
-  name: 'Config Blog',
-  description: 'Mapeamentos para conteúdo do blog',
-  blockMappings: {
-    'titulo-principal': BLOCKS.HEADING_1.value,
-    'texto': BLOCKS.PARAGRAPH.value,
-  },
-  inlineMappings: {
-    'link-externo': INLINES.HYPERLINK.value,
-  },
-);
-```
+Propriedades de estilo disponíveis:
+- `paragraph` (parágrafo)
+- `heading1` a `heading6` (títulos)
+- `listItem` (item de lista)
+- `quote` (citação)
+- `hyperlink` (link)
 
-##### Ativando uma Configuração
-```dart
-await MappingConfigManager.setActiveConfig(config.name);
-```
+### Blocos Personalizados
 
-##### Exportando/Importando
-```dart
-// Exportar
-final json = await MappingConfigManager.exportConfigs();
-await Clipboard.setData(ClipboardData(text: json));
+Você pode criar blocos personalizados para tipos específicos de conteúdo:
 
-// Importar
-final data = await Clipboard.getData('text/plain');
-if (data?.text != null) {
-  await MappingConfigManager.importConfigs(data!.text!);
+```dart
+// Defina seu widget de bloco personalizado
+class BlocoArroz extends StatelessWidget {
+  final dynamic node;
+  final Next next;
+
+  const BlocoArroz(this.node, this.next);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.rice_bowl, size: 32),
+          if (node['content'] != null)
+            ...toWidgetList(next(node['content'])),
+        ],
+      ),
+    );
+  }
 }
+
+// Registre seu bloco personalizado
+void main() {
+  CustomContentRegistry.registerBlockRenderer(
+    'arroz',
+    (node, next) => BlocoArroz(node, next),
+  );
+  
+  runApp(MyApp());
+}
+
+// Use com mapeamento de tipos
+ContentfulRichText(
+  richTextJson,
+  options: Options(
+    renderNode: RenderNode({}),
+  ),
+).documentToWidgetTree
 ```
-
-### Tipos Suportados
-
-#### Blocos
-- PARAGRAPH
-- HEADING_1 a HEADING_6
-- UL_LIST
-- OL_LIST
-- LIST_ITEM
-- HR
-- QUOTE
-- EMBEDDED_ENTRY
-- EMBEDDED_ASSET
-
-#### Inline
-- HYPERLINK
-- ENTRY_HYPERLINK
-- ASSET_HYPERLINK
-- EMBEDDED_ENTRY
 
 ## Contributing | Contribuindo
 

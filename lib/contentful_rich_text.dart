@@ -139,16 +139,49 @@ class ContentfulRichText {
     nodeType = NodeTypeMapper.convertBlockType(nodeType);
     
     if (Helpers.isText(node)) {
-      return Text.rich(TextSpan(text: _processInlineNode(node)));
-    } else if (Helpers.isParagraph(node) || Helpers.isHeader(node)) {
-      return singletonRenderers.renderNode[nodeType]!(
-        node,
-        (nodes) => List<TextSpan>.from(
-          nodes.map(
+      return Text.rich(TextSpan(
+        text: _processInlineNode(node),
+        style: options?.styles.paragraph,
+      ));
+    } else if (Helpers.isParagraph(node)) {
+      return Text.rich(TextSpan(
+        children: List<TextSpan>.from(
+          node['content']?.map(
             (node) => _processInlineNode(node),
-          ),
+          ) ?? [],
         ),
-      );
+        style: options?.styles.paragraph,
+      ));
+    } else if (Helpers.isHeader(node)) {
+      TextStyle? style;
+      switch (nodeType) {
+        case 'heading-1':
+          style = options?.styles.heading1;
+          break;
+        case 'heading-2':
+          style = options?.styles.heading2;
+          break;
+        case 'heading-3':
+          style = options?.styles.heading3;
+          break;
+        case 'heading-4':
+          style = options?.styles.heading4;
+          break;
+        case 'heading-5':
+          style = options?.styles.heading5;
+          break;
+        case 'heading-6':
+          style = options?.styles.heading6;
+          break;
+      }
+      return Text.rich(TextSpan(
+        children: List<TextSpan>.from(
+          node['content']?.map(
+            (node) => _processInlineNode(node),
+          ) ?? [],
+        ),
+        style: style,
+      ));
     } else {
       Next nextNode = (nodes) => nodeListToWidget(nodes);
 

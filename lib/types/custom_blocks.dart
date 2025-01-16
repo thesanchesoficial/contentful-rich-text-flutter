@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:contentful_rich_text/types/types.dart';
 
 /// Registry for custom blocks and inlines
